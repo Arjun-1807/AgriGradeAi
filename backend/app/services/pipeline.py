@@ -1,7 +1,6 @@
 import numpy as np
 from app.services.classifier import classify_produce
-from app.services.defect_detector import detect_defects
-from app.services.area_calculator import compute_defect_percentage
+from app.services.heuristic_defect_detector import detect_defects_heuristic
 from app.services.grading_engine import determine_grade
 
 
@@ -28,15 +27,9 @@ def run_pipeline(image: np.ndarray) -> dict:
             "defects": [],
         }
 
-    # Crop detected fruit region and run defect detection on the crop
+    # Crop detected fruit region and run heuristic defect estimation on the crop
     cropped = _crop_to_bbox(image, classification["bbox"])
-    detection = detect_defects(cropped)
-
-    defect_pct = compute_defect_percentage(
-        detection["detections"],
-        detection["image_width"],
-        detection["image_height"],
-    )
+    defect_pct = detect_defects_heuristic(cropped)
 
     grading = determine_grade(defect_pct)
 
@@ -46,5 +39,5 @@ def run_pipeline(image: np.ndarray) -> dict:
         "defect_percentage": defect_pct,
         "grade": grading["grade"],
         "label": grading["label"],
-        "defects": detection["detections"],
+        "defects": [],
     }
